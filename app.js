@@ -15,11 +15,13 @@ const U=["UPC","PUCP","UNMSM","UTP"],
   C=["Ingeniería de Sistemas","Psicología","Administración"],
   Y=[1,2,3,4,5,6,7,8,9,10],
   D=["Básico","Intermedio","Avanzado"];
+// Carreras para el registro (la lista C de arriba es la de los cursos que existen hoy)
+const CA=[...C,"Arquitectura","Comunicaciones","Contabilidad","Derecho","Economía","Educación","Enfermería","Ingeniería Civil","Ingeniería Industrial","Marketing","Medicina Humana","Odontología"].sort((a,b)=>a.localeCompare(b,"es"));
 const cursos=[
-  {n:"Interacción Humano-Computador",c:C[0],d:D[1],t:"Aprende a diseñar interfaces centradas en las personas: heurísticas de usabilidad, prototipado y pruebas con usuarios reales.",w:"8 semanas",m:"HCI y diseño",k:["Heurísticas de Nielsen","Prototipado en Figma","Pruebas de usabilidad","Accesibilidad web"]},
-  {n:"Cálculo I",c:C[0],d:D[0],t:"Domina los fundamentos del cálculo diferencial e integral con ejercicios resueltos paso a paso.",w:"10 semanas",m:"Cálculo",k:["Límites y continuidad","Derivadas y sus aplicaciones","Integrales definidas e indefinidas","Problemas de optimización"]},
-  {n:"Psicología del Aprendizaje",c:C[1],d:D[1],t:"Conoce las principales teorías del aprendizaje y cómo aplicarlas en casos prácticos de estudio y enseñanza.",w:"8 semanas",m:"Psicología",k:["Conductismo y cognitivismo","Motivación y memoria","Estrategias de estudio","Casos prácticos"]},
-  {n:"Finanzas Corporativas",c:C[2],d:D[2],t:"Entiende el valor del dinero en el tiempo y cómo evaluar proyectos de inversión en una empresa.",w:"12 semanas",m:"Finanzas",k:["Valor del dinero en el tiempo","VAN y TIR","Costo de capital","Evaluación de proyectos"]}
+  {n:"Interacción Humano-Computador",c:C[0],d:D[1],t:"Aprende a diseñar interfaces centradas en las personas: heurísticas de usabilidad, prototipado y pruebas con usuarios reales.",w:"8 semanas",m:"HCI y diseño",pm:25,k:["Heurísticas de Nielsen","Prototipado en Figma","Pruebas de usabilidad","Accesibilidad web"]},
+  {n:"Cálculo I",c:C[0],d:D[0],t:"Domina los fundamentos del cálculo diferencial e integral con ejercicios resueltos paso a paso.",w:"10 semanas",m:"Cálculo",pm:15,k:["Límites y continuidad","Derivadas y sus aplicaciones","Integrales definidas e indefinidas","Problemas de optimización"]},
+  {n:"Psicología del Aprendizaje",c:C[1],d:D[1],t:"Conoce las principales teorías del aprendizaje y cómo aplicarlas en casos prácticos de estudio y enseñanza.",w:"8 semanas",m:"Psicología",pm:19,k:["Conductismo y cognitivismo","Motivación y memoria","Estrategias de estudio","Casos prácticos"]},
+  {n:"Finanzas Corporativas",c:C[2],d:D[2],t:"Entiende el valor del dinero en el tiempo y cómo evaluar proyectos de inversión en una empresa.",w:"12 semanas",m:"Finanzas",pm:29,k:["Valor del dinero en el tiempo","VAN y TIR","Costo de capital","Evaluación de proyectos"]}
 ];
 const recs=[
   {n:"Guía de heurísticas de Nielsen",d:D[0],f:"heuristica.png"},
@@ -28,10 +30,10 @@ const recs=[
   {n:"Simulacro de examen de finanzas",d:D[2],f:"introduccion.png"}
 ];
 const ments=[
-  {n:"Victor Fabio Salazar",s:"HCI y diseño",u:U[0],r:4.8,h:["Lun 4:00 pm","Mié 6:00 pm"],p:20},
-  {n:"Jaime Paul Gomez",s:"Cálculo",u:U[1],r:4.6,h:["Mar 5:00 pm","Vie 3:00 pm"],p:25},
-  {n:"Gabriel Alfonso Regalado",s:"Finanzas",u:U[2],r:4.9,h:["Jue 7:00 pm"],p:30},
-  {n:"Maria Pilar Anticona",s:"Psicología",u:U[3],r:4.5,h:["Sáb 10:00 am"],p:20}
+  {n:"Victor Fabio Salazar",s:"HCI y diseño",u:U[0],r:4.8,h:["Lun 4:00 pm","Mié 6:00 pm"],p:12},
+  {n:"Jaime Paul Gomez",s:"Cálculo",u:U[1],r:4.6,h:["Mar 5:00 pm","Vie 3:00 pm"],p:12},
+  {n:"Gabriel Alfonso Regalado",s:"Finanzas",u:U[2],r:4.9,h:["Jue 7:00 pm"],p:15},
+  {n:"Maria Pilar Anticona",s:"Psicología",u:U[3],r:4.5,h:["Sáb 10:00 am"],p:10}
 ];
 cursos.forEach((c,i)=>c.i=["tecnologia.jpg","matematica.png","apoyo.jpg","negocios.jpg"][i]);
 recs.forEach((c,i)=>c.i=["ciencias-exactas.jpg","matematica.png","tecnologia.jpg","negocios.jpg"][i]);
@@ -63,7 +65,7 @@ const key=k=>k+":"+user().m,
 // ===== 4. INICIO: llenar los selectores =====
 [
   ["#ru",U,"Selecciona tu universidad"],
-  ["#rc",C,"Selecciona tu carrera"],
+  ["#rc",CA,"Selecciona tu carrera"],
   ["#ry",Y,"Selecciona tu ciclo"],
   ["#cc",C,"Todas"],
   ["#cd",D,"Todas"],
@@ -101,7 +103,7 @@ $("#reg").onsubmit=ev=>{
   S("user",u);
   err("#rerr","");
   session();
-  $("#cc").value=u.c;
+  if([...$("#cc").options].some(o=>o.value===u.c))$("#cc").value=u.c;
   draw();
   say("Cuenta creada. Ya iniciaste sesión.")
 };
@@ -181,11 +183,12 @@ $("#mp").addEventListener("click",ev=>{
 function courseBody(n){
   const c=cursos.find(x=>x.n===n),
     sv=mine("saved",[]).includes(n),
+    en=mine("enrolled",[]).includes(n),
     m=ments.find(x=>x.s===c.m);
   $("#cpi").src="imagenes/"+c.i;
   $("#cpi").alt="Imagen del curso "+c.n;
   $("#cpt").textContent=c.n;
-  $("#cpb").innerHTML=`<p><span class="tag">${e(c.c)}</span><span class="tag">${c.d}</span><span class="tag">${e(c.w)}</span></p><p>${e(c.t)}</p><h4>Lo que aprenderás</h4><ul>${c.k.map(k=>`<li>${e(k)}</li>`).join("")}</ul>${m?`<h4>Mentor recomendado</h4><p>${e(m.n)} · ${e(m.u)} · S/ ${m.p} por mentoría</p>`:""}<div class="cp-act"><button type="button" class="btn alt" data-save="${e(n)}" aria-pressed="${sv}">${sv?"Guardado":"Guardar curso"}</button>${m?`<button type="button" class="btn" data-pick="${e(m.n)}">Agendar con ${e(m.n.split(" ")[0])}</button>`:""}</div>`
+  $("#cpb").innerHTML=`<p><span class="tag">${e(c.c)}</span><span class="tag">${c.d}</span><span class="tag">${e(c.w)}</span></p><p class="mp-price"><b>S/ ${c.pm} al mes</b>Pago mensual</p><p>${e(c.t)}</p><h4>Lo que aprenderás</h4><ul>${c.k.map(k=>`<li>${e(k)}</li>`).join("")}</ul>${m?`<h4>Mentor recomendado</h4><p>${e(m.n)} · ${e(m.u)}</p>`:""}<div class="cp-act"><button type="button" class="btn alt" data-save="${e(n)}" aria-pressed="${sv}">${sv?"Guardado":"Guardar curso"}</button>${en?`<button type="button" class="btn alt" data-unenroll="${e(n)}">✓ Inscrito (cancelar)</button>`:`<button type="button" class="btn" data-enroll="${e(n)}">Inscribirse al curso</button>`}</div>`
 }
 function openCourse(n){
   courseBody(n);
@@ -230,6 +233,23 @@ document.addEventListener("click",ev=>{
     r.push(b.dataset.rep);
     S("reps",r);
     say("Gracias. Revisaremos el recurso reportado.")
+  }
+  if(b.dataset.enroll){
+    if(!gate())return;
+    const en=mine("enrolled",[]),
+      c=cursos.find(x=>x.n===b.dataset.enroll);
+    if(!en.includes(c.n)){
+      en.push(c.n);
+      save("enrolled",en)
+    }
+    courseBody(c.n);
+    say("Te inscribiste en "+c.n+" (S/ "+c.pm+" al mes).")
+  }
+  if(b.dataset.unenroll){
+    if(!gate())return;
+    save("enrolled",mine("enrolled",[]).filter(x=>x!==b.dataset.unenroll));
+    courseBody(b.dataset.unenroll);
+    say("Cancelaste tu inscripción en "+b.dataset.unenroll+".")
   }
   if(b.dataset.prof)openProfile(b.dataset.prof);
   if(b.dataset.course)openCourse(b.dataset.course);
